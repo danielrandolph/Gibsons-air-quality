@@ -1,0 +1,19 @@
+{
+  "name": "gibsons-air-quality",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "netlify-dev": "netlify dev",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.8.2",
+    "@types/node": "^26.1.2",
+    "netlify-cli": "^17.38.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
