@@ -34,10 +34,11 @@ export const handler: Handler = async () => {
       return json({ name: 'OpenAQ', available: false, error: 'No PM2.5 sensor at nearest station', baseWeight: 0, includeInBlend: false });
     }
 
-    const latestUrl = `https://api.openaq.org/v3/sensors/${pm25Sensor.id}/latest`;
+    // v3's "latest" endpoint is per-location (all sensors), not per-sensor — /v3/sensors/{id}/latest 404s.
+    const latestUrl = `https://api.openaq.org/v3/locations/${location.id}/latest`;
     const latestRes = await fetch(latestUrl, { headers });
     const latestData = await latestRes.json();
-    const latest = latestData.results?.[0];
+    const latest = (latestData.results ?? []).find((r: any) => r.sensorsId === pm25Sensor.id);
     if (!latest) {
       return json({ name: 'OpenAQ', available: false, error: 'No recent measurement', baseWeight: 0, includeInBlend: false });
     }
