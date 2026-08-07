@@ -1,6 +1,6 @@
 # Gibsons Air Quality
 
-A single-page app that blends PurpleAir (wildfire-smoke-corrected), Environment Canada's AQHI, and IQAir into one "best estimate" air quality reading for Gibsons, BC — plus an optional OpenAQ cross-check.
+A single-page app that blends PurpleAir (wildfire-smoke-corrected), OpenAQ (government reference monitor), and IQAir into one "best estimate" air quality reading for Gibsons, BC — plus Environment Canada's AQHI as a reference reading.
 
 ## Why a blend?
 
@@ -10,7 +10,7 @@ Low-cost sensors like PurpleAir overestimate PM2.5 during wildfire smoke because
 PM2.5_corrected = 0.524 × PM2.5_cf1 − 0.0862 × RH + 5.75
 ```
 
-The headline number is a distance-weighted blend of corrected PurpleAir readings (weight 0.7) and IQAir's nearest station (weight 0.3), converted to the familiar US AQI 0–500 scale. Environment Canada's AQHI is a different, composite index (not a PM2.5 mass concentration), so it's shown as a reference reading rather than blended in. OpenAQ is shown the same way, as a bonus cross-check — coverage in this area tends to be thin.
+The headline number is a weighted blend of corrected PurpleAir readings (weight 0.5), OpenAQ's nearest government monitor (weight 0.35), and IQAir's nearest station (weight 0.15), converted to the familiar US AQI 0–500 scale. Environment Canada's AQHI is a different, composite index (not a PM2.5 mass concentration), so it's shown as a reference reading rather than blended in.
 
 If a source is unavailable, the remaining sources' weights are automatically renormalized.
 
@@ -27,7 +27,7 @@ If a source is unavailable, the remaining sources' weights are automatically ren
 1. Go to https://www.iqair.com/air-pollution-data-api and sign up for the free Community plan.
 2. Copy your API key from the dashboard.
 
-**OpenAQ** (optional, bonus source only):
+**OpenAQ** (optional, but recommended — included in the blend):
 1. Go to https://explore.openaq.org/register and register.
 2. Copy your API key.
 

@@ -4,7 +4,7 @@ import { GIBSONS } from '../../src/location';
 export const handler: Handler = async () => {
   const apiKey = process.env.IQAIR_API_KEY;
   if (!apiKey) {
-    return json({ name: 'IQAir', available: false, error: 'No API key configured', baseWeight: 0.3, includeInBlend: true });
+    return json({ name: 'IQAir', available: false, error: 'No API key configured', baseWeight: 0.15, includeInBlend: true });
   }
 
   const url = `https://api.airvisual.com/v2/nearest_city?lat=${GIBSONS.lat}&lon=${GIBSONS.lon}&key=${apiKey}`;
@@ -14,14 +14,14 @@ export const handler: Handler = async () => {
     const data = await res.json();
 
     if (data.status !== 'success') {
-      return json({ name: 'IQAir', available: false, error: data.data?.message ?? `HTTP ${res.status}`, baseWeight: 0.3, includeInBlend: true });
+      return json({ name: 'IQAir', available: false, error: data.data?.message ?? `HTTP ${res.status}`, baseWeight: 0.15, includeInBlend: true });
     }
 
     const pollution = data.data?.current?.pollution;
     const pm25 = pollution?.aqius != null ? aqiUsToPm25(pollution.aqius) : undefined;
 
     if (pm25 === undefined) {
-      return json({ name: 'IQAir', available: false, error: 'No pollution data returned', baseWeight: 0.3, includeInBlend: true });
+      return json({ name: 'IQAir', available: false, error: 'No pollution data returned', baseWeight: 0.15, includeInBlend: true });
     }
 
     return json({
@@ -30,11 +30,11 @@ export const handler: Handler = async () => {
       pm25: Math.round(pm25 * 10) / 10,
       stationName: `${data.data.city}, ${data.data.state}`,
       updated: pollution.ts,
-      baseWeight: 0.3,
+      baseWeight: 0.15,
       includeInBlend: true,
     });
   } catch (err: any) {
-    return json({ name: 'IQAir', available: false, error: err.message ?? 'Fetch failed', baseWeight: 0.3, includeInBlend: true });
+    return json({ name: 'IQAir', available: false, error: err.message ?? 'Fetch failed', baseWeight: 0.15, includeInBlend: true });
   }
 };
 

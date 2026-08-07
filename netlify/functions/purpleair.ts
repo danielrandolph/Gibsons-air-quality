@@ -19,7 +19,7 @@ interface PurpleAirSensor {
 export const handler: Handler = async () => {
   const apiKey = process.env.PURPLEAIR_API_KEY;
   if (!apiKey) {
-    return json({ name: 'PurpleAir', available: false, error: 'No API key configured', baseWeight: 0.7, includeInBlend: true });
+    return json({ name: 'PurpleAir', available: false, error: 'No API key configured', baseWeight: 0.5, includeInBlend: true });
   }
 
   const fields = 'name,latitude,longitude,pm2.5_cf_1,humidity,last_seen';
@@ -33,7 +33,7 @@ export const handler: Handler = async () => {
   try {
     const res = await fetch(url, { headers: { 'X-API-Key': apiKey } });
     if (!res.ok) {
-      return json({ name: 'PurpleAir', available: false, error: `HTTP ${res.status}`, baseWeight: 0.7, includeInBlend: true });
+      return json({ name: 'PurpleAir', available: false, error: `HTTP ${res.status}`, baseWeight: 0.5, includeInBlend: true });
     }
     const data = await res.json();
     const fieldsIdx: string[] = data.fields;
@@ -61,7 +61,7 @@ export const handler: Handler = async () => {
       .sort((a, b) => a.distanceKm - b.distanceKm);
 
     if (withinRange.length === 0) {
-      return json({ name: 'PurpleAir', available: false, error: 'No sensors within range', baseWeight: 0.7, includeInBlend: true });
+      return json({ name: 'PurpleAir', available: false, error: 'No sensors within range', baseWeight: 0.5, includeInBlend: true });
     }
 
     // inverse-distance-weighted average of nearby sensors (cap distance floor to avoid div/0)
@@ -84,11 +84,11 @@ export const handler: Handler = async () => {
       distanceKm: Math.round(nearest[0].distanceKm * 10) / 10,
       stationName: `${nearest.length} sensor(s), nearest: ${nearest[0].name}`,
       updated: new Date().toISOString(),
-      baseWeight: 0.7,
+      baseWeight: 0.5,
       includeInBlend: true,
     });
   } catch (err: any) {
-    return json({ name: 'PurpleAir', available: false, error: err.message ?? 'Fetch failed', baseWeight: 0.7, includeInBlend: true });
+    return json({ name: 'PurpleAir', available: false, error: err.message ?? 'Fetch failed', baseWeight: 0.5, includeInBlend: true });
   }
 };
 
