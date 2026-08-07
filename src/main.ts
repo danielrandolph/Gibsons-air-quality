@@ -25,7 +25,7 @@ function render(data: BlendResult & { generatedAt: string }) {
   const sourceCards = data.sources.map(renderSourceCard).join('');
 
   app.innerHTML = `
-    <h1>Gibsons, BC — Air Quality</h1>
+    <h1>Gibsons, BC Air Quality</h1>
     <section class="headline" style="background:${data.color}1a; border: 1px solid ${data.color}55;">
       <div class="number" style="color:${data.color}">${data.sourceCount > 0 ? data.aqi : '—'}</div>
       <div class="category" style="color:${data.color}">${data.sourceCount > 0 ? data.category : 'No data available'}</div>
@@ -82,7 +82,7 @@ function renderSourceCard(s: SourceReading & { aqhi?: number; category?: string;
 
 function renderError(message: string) {
   app.innerHTML = `
-    <h1>Gibsons, BC — Air Quality</h1>
+    <h1>Gibsons, BC Air Quality</h1>
     <div class="error-banner">${message}</div>
     <div class="actions"><button id="retry-btn">Retry</button></div>
   `;
