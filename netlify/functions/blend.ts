@@ -3,7 +3,7 @@ import { blend, type SourceReading } from '../../src/blend';
 import { handler as purpleAirHandler } from './purpleair';
 import { handler as iqairHandler } from './iqair';
 import { handler as aqhiHandler } from './aqhi';
-import { handler as openaqHandler } from './openaq';
+import { handler as bcgovHandler } from './bcgov';
 
 async function invoke(fn: Handler): Promise<SourceReading> {
   const result = await fn({} as any, {} as any, undefined as any);
@@ -12,14 +12,14 @@ async function invoke(fn: Handler): Promise<SourceReading> {
 }
 
 export const handler: Handler = async () => {
-  const [purpleair, iqair, aqhi, openaq] = await Promise.all([
+  const [purpleair, iqair, aqhi, bcgov] = await Promise.all([
     invoke(purpleAirHandler),
     invoke(iqairHandler),
     invoke(aqhiHandler),
-    invoke(openaqHandler),
+    invoke(bcgovHandler),
   ]);
 
-  const result = blend([purpleair, iqair, aqhi, openaq]);
+  const result = blend([purpleair, iqair, aqhi, bcgov]);
 
   return {
     statusCode: 200,
