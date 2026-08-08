@@ -33,7 +33,7 @@ function render(data: BlendResult & { generatedAt: string }, trend: TrendResult)
 
   const sourceCards = data.sources.map(renderSourceCard).join('');
   const trendHtml = trend.available
-    ? renderTrendSection(trend.points, data.color, trend.stationName)
+    ? renderTrendSection(trend.points, trend.stationName)
     : '';
 
   app.innerHTML = `
