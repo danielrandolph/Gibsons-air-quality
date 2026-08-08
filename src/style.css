@@ -244,14 +244,6 @@ button:active {
   pointer-events: none;
 }
 
-.trend-x-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.7rem;
-  color: var(--text-faint);
-  margin-top: 0.25rem;
-}
-
 .trend-legend {
   display: flex;
   flex-wrap: wrap;
