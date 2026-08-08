@@ -1,5 +1,7 @@
 import type { Handler } from '@netlify/functions';
-import { blend, type SourceReading } from '../../src/blend';
+import { connectLambda } from '@netlify/blobs';
+import { blend, type BlendResult, type SourceReading } from '../../src/blend';
+import { appendPoint } from '../../src/trendStore';
 import { handler as purpleAirHandler } from './purpleair';
 import { handler as iqairHandler } from './iqair';
 import { handler as aqhiHandler } from './aqhi';
@@ -11,7 +13,7 @@ async function invoke(fn: Handler): Promise<SourceReading> {
   return JSON.parse(res.body);
 }
 
-export const handler: Handler = async () => {
+export async function computeBlend(): Promise<BlendResult> {
   const [purpleair, iqair, aqhi, bcgov] = await Promise.all([
     invoke(purpleAirHandler),
     invoke(iqairHandler),
@@ -19,11 +21,21 @@ export const handler: Handler = async () => {
     invoke(bcgovHandler),
   ]);
 
-  const result = blend([purpleair, iqair, bcgov, aqhi]);
+  return blend([purpleair, iqair, bcgov, aqhi]);
+}
+
+export const handler: Handler = async (event) => {
+  connectLambda(event as any);
+  const result = await computeBlend();
+  const generatedAt = new Date().toISOString();
+
+  if (result.sourceCount > 0) {
+    await appendPoint({ t: generatedAt, pm25: result.pm25 });
+  }
 
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...result, generatedAt: new Date().toISOString() }),
+    body: JSON.stringify({ ...result, generatedAt }),
   };
 };
