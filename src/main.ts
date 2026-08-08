@@ -1,28 +1,40 @@
 import './style.css';
 import type { BlendResult, SourceReading } from './blend';
+import { renderTrendSection, attachTrendInteraction, type TrendPoint } from './trendChart';
 
 const REFRESH_MS = 10 * 60 * 1000; // 10 minutes, per PurpleAir's polling guidance
 
 const app = document.getElementById('app')!;
 
+interface TrendResult {
+  available: boolean;
+  stationName?: string;
+  points: TrendPoint[];
+  error?: string;
+}
+
 async function load() {
   try {
-    const res = await fetch('/api/blend');
-    if (!res.ok) throw new Error(`Server error (${res.status})`);
-    const data: BlendResult & { generatedAt: string } = await res.json();
-    render(data);
+    const [blendRes, trendRes] = await Promise.all([fetch('/api/blend'), fetch('/api/trend')]);
+    if (!blendRes.ok) throw new Error(`Server error (${blendRes.status})`);
+    const data: BlendResult & { generatedAt: string } = await blendRes.json();
+    const trend: TrendResult = trendRes.ok ? await trendRes.json() : { available: false, points: [] };
+    render(data, trend);
   } catch (err: any) {
     renderError(err.message ?? 'Failed to load air quality data');
   }
 }
 
-function render(data: BlendResult & { generatedAt: string }) {
+function render(data: BlendResult & { generatedAt: string }, trend: TrendResult) {
   const updated = new Date(data.generatedAt).toLocaleTimeString('en-CA', {
     hour: 'numeric',
     minute: '2-digit',
   });
 
   const sourceCards = data.sources.map(renderSourceCard).join('');
+  const trendHtml = trend.available
+    ? renderTrendSection(trend.points, data.color, trend.stationName)
+    : '';
 
   app.innerHTML = `
     <h1>Gibsons, BC Air Quality</h1>
@@ -33,6 +45,7 @@ function render(data: BlendResult & { generatedAt: string }) {
       <div class="meta">Blended from ${data.sourceCount} source${data.sourceCount === 1 ? '' : 's'}</div>
     </section>
     <div class="sources">${sourceCards}</div>
+    ${trendHtml}
     <div class="actions"><button id="refresh-btn">Refresh</button></div>
     <div class="updated-at">Last updated ${updated}</div>
     <div class="links">
@@ -47,6 +60,10 @@ function render(data: BlendResult & { generatedAt: string }) {
     app.innerHTML = '<p class="loading">Refreshing…</p>';
     load();
   });
+
+  if (trend.available) {
+    attachTrendInteraction(trend.points);
+  }
 }
 
 function renderSourceCard(s: SourceReading & { aqhi?: number; category?: string; color?: string }): string {
