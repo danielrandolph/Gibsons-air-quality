@@ -1,63 +1,78 @@
 import type { Handler } from '@netlify/functions';
 import { GIBSONS, haversineKm } from '../../src/location';
-import { correctPurpleAir } from '../../src/aqi';
+import { parseCsvLine, parsePstToIso } from '../../src/bcgovCsv';
 
-const RADIUS_KM = 20;
-const DEG_PAD = RADIUS_KM / 90;
+// Historical trend comes from the same BC government feed as the "BC Government (Air
+// Quality)" card, not PurpleAir's history endpoint — PurpleAir's /history data for this
+// sensor turned out to be wildly inconsistent with its own current-reading endpoint
+// (reporting ~1300µg/m3 vs. ~13µg/m3 for the same sensor at the same time), so it can't
+// be trusted for a trend line. The BC gov feed's current and historical values agree.
+const STATIONS_URL = 'https://www.env.gov.bc.ca/epd/bcairquality/aqo/csv/bc_air_monitoring_stations.csv';
+const HISTORY_URL = 'https://www.env.gov.bc.ca/epd/bcairquality/aqo/csv/Hourly_Raw_Air_Data/Air_Quality/PM25.csv';
+const RADIUS_KM = 60;
 const HOURS = 12;
 
 export const handler: Handler = async () => {
-  const apiKey = process.env.PURPLEAIR_API_KEY;
-  if (!apiKey) {
-    return json({ available: false, error: 'No API key configured', points: [] });
-  }
-
   try {
-    const nwLat = GIBSONS.lat + DEG_PAD;
-    const nwLon = GIBSONS.lon - DEG_PAD;
-    const seLat = GIBSONS.lat - DEG_PAD;
-    const seLon = GIBSONS.lon + DEG_PAD;
-    const nearbyUrl = `https://api.purpleair.com/v1/sensors?fields=name,latitude,longitude&nwlat=${nwLat}&nwlng=${nwLon}&selat=${seLat}&selng=${seLon}&location_type=0`;
-    const nearbyRes = await fetch(nearbyUrl, { headers: { 'X-API-Key': apiKey } });
-    if (!nearbyRes.ok) {
-      return json({ available: false, error: `HTTP ${nearbyRes.status}`, points: [] });
+    const stationsRes = await fetch(STATIONS_URL);
+    if (!stationsRes.ok) {
+      return json({ available: false, error: `HTTP ${stationsRes.status}`, points: [] });
     }
-    const nearbyData = await nearbyRes.json();
-    const fields: string[] = nearbyData.fields;
-    const idx = (f: string) => fields.indexOf(f);
+    const stationsText = await stationsRes.text();
+    const stationLines = stationsText.split('\n').filter((l) => l.trim().length > 0);
+    const header = parseCsvLine(stationLines[0]);
+    const idx = (name: string) => header.indexOf(name);
+    const latIdx = idx('LATITUDE');
+    const lonIdx = idx('LONGITUDE');
+    const pm25Idx = idx('PM25');
+    const nameIdx = idx('STATION_NAME');
+    const emsIdx = idx('EMS_ID');
 
-    const nearest = (nearbyData.data ?? [])
-      .filter((row: any[]) => row[idx('latitude')] != null && row[idx('longitude')] != null)
-      .map((row: any[]) => ({
-        sensorIndex: row[idx('sensor_index')],
-        name: row[idx('name')],
-        distanceKm: haversineKm(GIBSONS.lat, GIBSONS.lon, row[idx('latitude')], row[idx('longitude')]),
+    const nearest = stationLines
+      .slice(1)
+      .map((line) => parseCsvLine(line))
+      .map((f) => ({
+        name: f[nameIdx],
+        emsId: f[emsIdx],
+        lat: parseFloat(f[latIdx]),
+        lon: parseFloat(f[lonIdx]),
+        pm25: parseFloat(f[pm25Idx]),
       }))
-      .sort((a: any, b: any) => a.distanceKm - b.distanceKm)[0];
+      .filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lon) && Number.isFinite(s.pm25))
+      .map((s) => ({ ...s, distanceKm: haversineKm(GIBSONS.lat, GIBSONS.lon, s.lat, s.lon) }))
+      .filter((s) => s.distanceKm <= RADIUS_KM)
+      .sort((a, b) => a.distanceKm - b.distanceKm)[0];
 
     if (!nearest) {
-      return json({ available: false, error: 'No sensors within range', points: [] });
+      return json({ available: false, error: 'No reporting stations within range', points: [] });
     }
 
-    const nowSec = Math.floor(Date.now() / 1000);
-    const startSec = nowSec - HOURS * 3600;
-    const historyUrl = `https://api.purpleair.com/v1/sensors/${nearest.sensorIndex}/history?start_timestamp=${startSec}&end_timestamp=${nowSec}&average=60&fields=pm2.5_cf_1,humidity`;
-    const historyRes = await fetch(historyUrl, { headers: { 'X-API-Key': apiKey } });
+    const historyRes = await fetch(HISTORY_URL);
     if (!historyRes.ok) {
-      return json({ available: false, error: `HTTP ${historyRes.status}`, points: [] });
+      return json({ available: false, error: `History HTTP ${historyRes.status}`, points: [] });
     }
-    const historyData = await historyRes.json();
-    const hFields: string[] = historyData.fields;
-    const hIdx = (f: string) => hFields.indexOf(f);
+    const historyText = await historyRes.text();
+    const historyLines = historyText.split('\n').filter((l) => l.trim().length > 0);
+    const hHeader = parseCsvLine(historyLines[0]);
+    const hIdx = (name: string) => hHeader.indexOf(name);
+    const dateIdx = hIdx('DATE_PST');
+    const emsHistIdx = hIdx('EMS_ID');
+    const valueIdx = hIdx('REPORTED_VALUE');
 
-    const points = (historyData.data ?? [])
-      .filter((row: any[]) => row[hIdx('pm2.5_cf_1')] != null)
-      .map((row: any[]) => {
-        const rh = row[hIdx('humidity')] ?? 50;
-        const pm25 = correctPurpleAir(row[hIdx('pm2.5_cf_1')], rh);
-        return { t: new Date(row[hIdx('time_stamp')] * 1000).toISOString(), pm25: Math.round(pm25 * 10) / 10 };
-      })
-      .sort((a: any, b: any) => a.t.localeCompare(b.t));
+    const cutoff = Date.now() - HOURS * 3600 * 1000;
+
+    const points = historyLines
+      .slice(1)
+      .map((line) => parseCsvLine(line))
+      .filter((f) => f[emsHistIdx] === nearest.emsId)
+      .map((f) => ({ t: parsePstToIso(f[dateIdx]), pm25: parseFloat(f[valueIdx]) }))
+      .filter((p): p is { t: string; pm25: number } => !!p.t && Number.isFinite(p.pm25))
+      .filter((p) => new Date(p.t).getTime() >= cutoff)
+      .sort((a, b) => a.t.localeCompare(b.t));
+
+    if (points.length < 2) {
+      return json({ available: false, error: 'Not enough recent history for this station', points: [] });
+    }
 
     return json({ available: true, stationName: nearest.name, points });
   } catch (err: any) {
