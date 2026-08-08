@@ -79,8 +79,8 @@ export function renderTrendSection(points: TrendPoint[], stationName?: string): 
   const gridLines = gridTicks
     .map(
       (v) => `
-      <line x1="${PAD_X}" y1="${y(v).toFixed(1)}" x2="${WIDTH - PAD_X}" y2="${y(v).toFixed(1)}" stroke="#2a3440" stroke-width="1" />
-      <text x="${WIDTH - PAD_X}" y="${(y(v) - 3).toFixed(1)}" text-anchor="end" font-size="10" fill="#6b7684">${Math.round(v)}</text>
+      <line x1="${PAD_X}" y1="${y(v).toFixed(1)}" x2="${WIDTH - PAD_X}" y2="${y(v).toFixed(1)}" stroke="var(--border)" stroke-width="1" />
+      <text x="${WIDTH - PAD_X}" y="${(y(v) - 3).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--text-faint)">${Math.round(v)}</text>
     `,
     )
     .join('');
@@ -112,8 +112,8 @@ export function renderTrendSection(points: TrendPoint[], stationName?: string): 
           ${gridLines}
           <path d="${areaPath}" fill="url(#${gradientId})" stroke="none" />
           ${segments}
-          <circle cx="${x(points.length - 1).toFixed(1)}" cy="${y(values[values.length - 1]).toFixed(1)}" r="4.5" fill="${lastReading.color}" stroke="#0b0f14" stroke-width="2" />
-          <line id="trend-crosshair" x1="0" y1="${PAD_TOP}" x2="0" y2="${PAD_TOP + plotH}" stroke="#f4f6f8" stroke-width="1" opacity="0" />
+          <circle cx="${x(points.length - 1).toFixed(1)}" cy="${y(values[values.length - 1]).toFixed(1)}" r="4.5" fill="${lastReading.color}" stroke="var(--bg)" stroke-width="2" />
+          <line id="trend-crosshair" x1="0" y1="${PAD_TOP}" x2="0" y2="${PAD_TOP + plotH}" stroke="var(--text-primary)" stroke-width="1" opacity="0" />
           <rect id="trend-hover-target" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="transparent" />
         </svg>
         <div id="trend-tooltip" class="trend-tooltip" hidden></div>
@@ -139,13 +139,13 @@ export function attachTrendInteraction(points: TrendPoint[]) {
   const plotW = WIDTH - PAD_X * 2;
   const x = (i: number) => PAD_X + (i / (points.length - 1)) * plotW;
 
-  hoverTarget.addEventListener('mousemove', (evt) => {
+  const updateAt = (clientX: number) => {
     const rect = svg.getBoundingClientRect();
-    const mouseX = ((evt as MouseEvent).clientX - rect.left) * (WIDTH / rect.width);
+    const posX = (clientX - rect.left) * (WIDTH / rect.width);
     let nearest = 0;
     let nearestDist = Infinity;
     points.forEach((_, i) => {
-      const d = Math.abs(x(i) - mouseX);
+      const d = Math.abs(x(i) - posX);
       if (d < nearestDist) {
         nearestDist = d;
         nearest = i;
@@ -160,12 +160,37 @@ export function attachTrendInteraction(points: TrendPoint[]) {
     const rectWrap = (svg.parentElement as HTMLElement).getBoundingClientRect();
     const px = (x(nearest) / WIDTH) * rectWrap.width;
     tooltip.style.left = `${Math.min(Math.max(px, 40), rectWrap.width - 40)}px`;
-  });
+  };
 
-  hoverTarget.addEventListener('mouseleave', () => {
+  const hide = () => {
     crosshair.setAttribute('opacity', '0');
     tooltip.hidden = true;
-  });
+  };
+
+  hoverTarget.addEventListener('mousemove', (evt) => updateAt((evt as MouseEvent).clientX));
+  hoverTarget.addEventListener('mouseleave', hide);
+
+  hoverTarget.addEventListener(
+    'touchstart',
+    (evt) => {
+      const touch = (evt as TouchEvent).touches[0];
+      if (touch) updateAt(touch.clientX);
+    },
+    { passive: true },
+  );
+  hoverTarget.addEventListener(
+    'touchmove',
+    (evt) => {
+      const touch = (evt as TouchEvent).touches[0];
+      if (touch) {
+        evt.preventDefault();
+        updateAt(touch.clientX);
+      }
+    },
+    { passive: false },
+  );
+  hoverTarget.addEventListener('touchend', hide);
+  hoverTarget.addEventListener('touchcancel', hide);
 }
 
 function formatHour(iso: string): string {

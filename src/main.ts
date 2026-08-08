@@ -82,7 +82,7 @@ function renderSourceCard(s: SourceReading & { aqhi?: number; category?: string;
   const isAqhi = s.aqhi != null;
   const value = isAqhi ? s.aqhi : s.pm25 != null ? `${s.pm25}` : '—';
   const unit = isAqhi ? 'AQHI' : 'µg/m³';
-  const color = s.color ?? '#f4f6f8';
+  const color = s.color ?? 'var(--text-primary)';
   const detailParts = [s.stationName, s.distanceKm != null ? `${s.distanceKm} km away` : null].filter(Boolean);
 
   return `
