@@ -19,7 +19,7 @@ export const handler: Handler = async () => {
     invoke(bcgovHandler),
   ]);
 
-  const result = blend([purpleair, iqair, aqhi, bcgov]);
+  const result = blend([purpleair, iqair, bcgov, aqhi]);
 
   return {
     statusCode: 200,
