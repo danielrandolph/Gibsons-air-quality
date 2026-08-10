@@ -5,13 +5,13 @@
 
   /* v3 base tokens — OS-native bento (see design-system/design.md in
      gibsons-bc-projects) */
-  --bg: #f8f3ec;
-  --surface: #fffdfa;
-  --surface-raised: #f4e8d9;
-  --border: #e3d2ba;
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --surface-raised: #eaedf2;
+  --border: #dbe1e8;
   --label: #1c222b;
   --label-secondary: #6d7380;
-  --label-tertiary: #9a9188;
+  --label-tertiary: #8791a0;
 
   --tint-navy: #2a4e70;
   --tint-terracotta: #c0562a;
