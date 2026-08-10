@@ -1,4 +1,4 @@
-import { pm25ToAqi } from './aqi';
+import { pm25ToAqi } from './aqi.js';
 
 export interface TrendPoint {
   t: string;
@@ -12,15 +12,16 @@ const PAD_BOTTOM = 20;
 const PAD_X = 4;
 const MIN_LABEL_SPACING_PX = 46;
 
-// Same US EPA zone bands used for the headline score, drawn as faint background bands
-// so the line visibly crosses from one zone into the next.
+// Same zone bands as categoryFor() in aqi.ts (design-system tint scale, not
+// raw EPA hues), drawn as faint background bands so the line visibly
+// crosses from one zone into the next.
 const ZONE_BANDS = [
-  { from: 0, to: 50, color: '#00e400' },
-  { from: 50, to: 100, color: '#ffff00' },
-  { from: 100, to: 150, color: '#ff7e00' },
-  { from: 150, to: 200, color: '#ff0000' },
-  { from: 200, to: 300, color: '#8f3f97' },
-  { from: 300, to: 500, color: '#7e0023' },
+  { from: 0, to: 50, color: '#3d9c82' },
+  { from: 50, to: 100, color: '#c08c2a' },
+  { from: 100, to: 150, color: '#c0562a' },
+  { from: 150, to: 200, color: '#b3271e' },
+  { from: 200, to: 300, color: '#7d5aa6' },
+  { from: 300, to: 500, color: '#7a2436' },
 ];
 
 function timeOf(p: TrendPoint): number {

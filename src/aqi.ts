@@ -24,20 +24,28 @@ export function pm25ToAqi(pm25: number): AqiResult {
   return { aqi, ...categoryFor(aqi) };
 }
 
+// Colors are the shared Sunshine Coast Software Co. design system's tint
+// scale (see design-system/design.md in gibsons-bc-projects), not the raw
+// EPA/AQHI standard hues — those clash with the seafoam/terracotta palette
+// used across the other apps (e.g. a pure #00e400 "Good" green next to
+// langdale-ferry's muted seafoam "Open" pill). Good/USG/Unhealthy reuse the
+// existing seafoam/terracotta/bad tokens directly; Moderate/Very
+// Unhealthy/Hazardous are new tokens (--tint-amber/--tint-purple/
+// --tint-maroon) built at the same muted saturation to stay in-family.
 export function categoryFor(aqi: number): { category: string; color: string } {
-  if (aqi <= 50) return { category: 'Good', color: '#00e400' };
-  if (aqi <= 100) return { category: 'Moderate', color: '#ffff00' };
-  if (aqi <= 150) return { category: 'Unhealthy for Sensitive Groups', color: '#ff7e00' };
-  if (aqi <= 200) return { category: 'Unhealthy', color: '#ff0000' };
-  if (aqi <= 300) return { category: 'Very Unhealthy', color: '#8f3f97' };
-  return { category: 'Hazardous', color: '#7e0023' };
+  if (aqi <= 50) return { category: 'Good', color: '#3d9c82' };
+  if (aqi <= 100) return { category: 'Moderate', color: '#c08c2a' };
+  if (aqi <= 150) return { category: 'Unhealthy for Sensitive Groups', color: '#c0562a' };
+  if (aqi <= 200) return { category: 'Unhealthy', color: '#b3271e' };
+  if (aqi <= 300) return { category: 'Very Unhealthy', color: '#7d5aa6' };
+  return { category: 'Hazardous', color: '#7a2436' };
 }
 
 export function aqhiCategory(aqhi: number): { category: string; color: string } {
-  if (aqhi <= 3) return { category: 'Low Risk', color: '#00cc00' };
-  if (aqhi <= 6) return { category: 'Moderate Risk', color: '#ffcc00' };
-  if (aqhi <= 10) return { category: 'High Risk', color: '#ff6600' };
-  return { category: 'Very High Risk', color: '#990000' };
+  if (aqhi <= 3) return { category: 'Low Risk', color: '#3d9c82' };
+  if (aqhi <= 6) return { category: 'Moderate Risk', color: '#c08c2a' };
+  if (aqhi <= 10) return { category: 'High Risk', color: '#c0562a' };
+  return { category: 'Very High Risk', color: '#b3271e' };
 }
 
 // US EPA / Barkjohn et al. (2021) correction for PurpleAir during wildfire smoke.

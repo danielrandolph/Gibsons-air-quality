@@ -18,6 +18,17 @@
   --tint-seafoam: #3d9c82;
   --seafoam-soft: #dcf0e9;
 
+  /* AQI/AQHI 6-tier signal scale — categoryFor()/aqhiCategory() in aqi.ts
+     read these same hex values directly (SVG fill/stroke attributes don't
+     reliably resolve var() across browsers), so keep any edit here in sync
+     with aqi.ts. Good/USG/Unhealthy reuse --tint-seafoam/--tint-terracotta/
+     --error-text; Moderate/Very Unhealthy/Hazardous are new tints built at
+     the same muted saturation to stay in the coastal palette family rather
+     than the raw EPA primary colors. */
+  --tint-amber: #c08c2a;
+  --tint-purple: #7d5aa6;
+  --tint-maroon: #7a2436;
+
   /* fixed brand colors for painterly motifs — do not remap per-theme */
   --navy: var(--tint-navy);
   --terracotta: var(--tint-terracotta);
@@ -58,6 +69,10 @@
     --tint-terracotta: #e2895c;
     --tint-seafoam: #5cc4a4;
     --seafoam-soft: #1c3831;
+
+    --tint-amber: #dba646;
+    --tint-purple: #a888c9;
+    --tint-maroon: #c15a70;
 
     --error-bg: #3a2220;
     --error-text: #e0685f;
