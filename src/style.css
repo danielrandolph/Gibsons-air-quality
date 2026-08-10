@@ -1,35 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&display=swap');
+
 :root {
   color-scheme: light dark;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --bg: #0b0f14;
-  --card-bg: #161d26;
-  --card-bg-unavailable: #161d26;
-  --text-primary: #f4f6f8;
-  --text-muted: #9aa5b1;
-  --text-faint: #6b7684;
-  --border: #2a3440;
-  --border-soft: #232c37;
-  --button-bg: #1f2933;
-  --link: #6ea8fe;
-  --error-bg: #3a1f1f;
-  --error-text: #ffb3b3;
+  /* v3 base tokens — OS-native bento (see design-system/design.md in
+     gibsons-bc-projects) */
+  --bg: #f8f3ec;
+  --surface: #fffdfa;
+  --surface-raised: #f4e8d9;
+  --border: #e3d2ba;
+  --label: #1c222b;
+  --label-secondary: #6d7380;
+  --label-tertiary: #9a9188;
+
+  --tint-navy: #2a4e70;
+  --tint-terracotta: #c0562a;
+  --tint-seafoam: #3d9c82;
+  --seafoam-soft: #dcf0e9;
+
+  /* fixed brand colors for painterly motifs — do not remap per-theme */
+  --navy: var(--tint-navy);
+  --terracotta: var(--tint-terracotta);
+  --seafoam: var(--tint-seafoam);
+  --cream: var(--surface);
+
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+
+  /* back-compat aliases — this app's AQI headline/trend-chart colors are
+     computed per-reading in TS (blend.ts/aqi.ts/trendChart.ts) and read
+     these var names directly, so they're kept as aliases onto the v3
+     base tokens rather than renamed at every call site. */
+  --card-bg: var(--surface);
+  --card-bg-unavailable: var(--surface-raised);
+  --text-primary: var(--label);
+  --text-muted: var(--label-secondary);
+  --text-faint: var(--label-tertiary);
+  --border-soft: var(--border);
+  --button-bg: var(--surface-raised);
+  --link: var(--tint-navy);
+  --error-bg: #f6dcd9;
+  --error-text: #b3271e;
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #f2f4f7;
-    --card-bg: #ffffff;
-    --card-bg-unavailable: #eceef1;
-    --text-primary: #12161c;
-    --text-muted: #4c5561;
-    --text-faint: #6b7684;
-    --border: #dde1e7;
-    --border-soft: #e5e8ec;
-    --button-bg: #e6e9ee;
-    --link: #2464c9;
-    --error-bg: #ffe4e4;
-    --error-text: #9c2a2a;
+    --bg: #1b1c1e;
+    --surface: #2a2b2e;
+    --surface-raised: #232427;
+    --border: #38393c;
+    --label: #f2f1ee;
+    --label-secondary: #9a9ba0;
+    --label-tertiary: #6c6d72;
+    --tint-navy: #7fa8ca;
+    --tint-terracotta: #e2895c;
+    --tint-seafoam: #5cc4a4;
+    --seafoam-soft: #1c3831;
+
+    --error-bg: #3a2220;
+    --error-text: #e0685f;
   }
 }
 
@@ -43,104 +74,155 @@ body {
   display: flex;
   justify-content: center;
   background: var(--bg);
-  color: var(--text-primary);
-  padding: 1rem;
+  color: var(--label);
+  font-family: var(--font-system);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.45;
+  padding: 1.5rem 1rem 3rem;
 }
 
 #app {
   width: 100%;
   max-width: 480px;
-  padding-top: 2rem;
 }
 
 h1 {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--label);
   margin: 0 0 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .loading {
   text-align: center;
-  color: var(--text-muted);
+  color: var(--label-secondary);
 }
 
+/* ============ Card — flat, bordered, no shadow. Same shell as the
+   other Sunshine Coast Software Co. apps. ============ */
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 1.1rem 1.3rem 1.4rem;
+}
+
+.card + .card {
+  margin-top: 1rem;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.9rem;
+  flex: none;
+}
+
+.card-head .title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--label);
+}
+
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============ Headline — the app's one hero stat. Keeps its AQI-tinted
+   background (color is the actual data here, a genuine status signal,
+   not decoration) but picks up the shared card radius/border. ============ */
 .headline {
   text-align: center;
-  border-radius: 20px;
+  border-radius: 22px;
   padding: 2rem 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .headline .number {
-  font-size: 5rem;
+  font-family: var(--font-display);
+  font-size: 4.5rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .headline .category {
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
   margin-top: 0.5rem;
 }
 
 .headline .meta {
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   opacity: 0.85;
   margin-top: 0.5rem;
 }
 
 .pm25-line {
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   opacity: 0.85;
   margin-top: 0.25rem;
 }
 
+/* ============ Source list — one row per station, matching the
+   sail-list/tile-row pattern used elsewhere in the design system. ======= */
 .sources {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
 
 .source-card {
-  background: var(--card-bg);
-  border-radius: 14px;
-  padding: 1rem 1.1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  padding: 0.7rem 0;
+}
+
+.source-card + .source-card {
+  border-top: 1px solid var(--border);
 }
 
 .source-card.unavailable {
-  background: var(--card-bg-unavailable);
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .source-name {
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
 .source-detail {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--label-secondary);
+  margin-top: 0.1rem;
 }
 
 .source-value {
-  font-size: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
   font-weight: 700;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .source-badge {
-  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-faint);
+  color: var(--label-tertiary);
 }
 
 .actions {
@@ -150,13 +232,19 @@ h1 {
 }
 
 button {
-  background: var(--button-bg);
-  color: var(--text-primary);
-  border: none;
+  font: inherit;
+  background: var(--surface);
+  color: var(--label);
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.6rem 1.4rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
+}
+
+button:hover {
+  background: var(--surface-raised);
 }
 
 button:active {
@@ -165,61 +253,63 @@ button:active {
 
 .updated-at {
   text-align: center;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--label-tertiary);
   margin-top: 0.5rem;
 }
 
 .links {
   text-align: center;
   margin-top: 2rem;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
+  color: var(--label-secondary);
 }
 
 .links a {
-  color: var(--link);
+  color: var(--tint-navy);
   text-decoration: none;
   display: block;
   margin-top: 0.35rem;
 }
 
+.links a:hover {
+  text-decoration: underline;
+}
+
 .error-banner {
   background: var(--error-bg);
   color: var(--error-text);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   text-align: center;
 }
 
-.trend-section {
-  background: var(--card-bg);
-  border-radius: 14px;
-  padding: 1rem 1.1rem 0.75rem;
-  margin-top: 0.75rem;
-}
-
+/* ============ Trend chart card ============ */
 .trend-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--label);
+  margin: 0;
 }
 
 .trend-subtitle {
   font-weight: 400;
-  color: var(--text-faint);
+  color: var(--label-tertiary);
 }
 
 .trend-empty {
-  font-size: 0.8rem;
-  color: var(--text-faint);
+  font-size: 0.8125rem;
+  color: var(--label-tertiary);
   margin: 0;
 }
 
 .trend-chart-wrap {
   position: relative;
+  margin-top: 0.6rem;
 }
 
 .trend-svg {
@@ -234,12 +324,12 @@ button:active {
   position: absolute;
   top: 4px;
   transform: translateX(-50%);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--label);
+  color: var(--surface);
   border-radius: 8px;
   padding: 0.3rem 0.55rem;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--text-primary);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -248,17 +338,17 @@ button:active {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
-  margin-top: 0.6rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--border-soft);
+  margin-top: 0.9rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
 }
 
 .trend-legend-item {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.7rem;
-  color: var(--text-muted);
+  font-size: 0.6875rem;
+  color: var(--label-secondary);
 }
 
 .trend-legend-dot {
@@ -266,4 +356,48 @@ button:active {
   height: 8px;
   border-radius: 50%;
   display: inline-block;
+}
+
+/* ============ Brand credit footer — ported from the shared Sunshine
+   Coast Software Co. design system (see design-system/design.md). ==== */
+.brand-footer {
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 2.5rem 0 0;
+  margin-top: 2.5rem;
+}
+
+.brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--label);
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 28px;
+  height: auto;
+  flex: none;
+}
+
+.brand-footer-note {
+  margin: 1.4rem 0 0;
+  font-family: var(--font-mono);
+  color: var(--label-secondary);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.brand-flag {
+  width: 16px;
+  height: auto;
+  flex: none;
 }

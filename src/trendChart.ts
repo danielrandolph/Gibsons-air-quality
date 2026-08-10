@@ -67,10 +67,12 @@ function buildHourTicks(startMs: number, endMs: number, x: (ms: number) => numbe
 export function renderTrendSection(points: TrendPoint[], stationName?: string): string {
   if (points.length < 2) {
     return `
-      <section class="trend-section">
-        <h2 class="trend-title">12-Hour Air Quality Trend</h2>
-        <p class="trend-empty">Not enough data yet to show a trend.</p>
-      </section>
+      <div class="card">
+        <div class="card-head"><span class="title">12-Hour Air Quality Trend</span></div>
+        <div class="card-body">
+          <p class="trend-empty">Not enough data yet to show a trend.</p>
+        </div>
+      </div>
     `;
   }
 
@@ -147,30 +149,34 @@ export function renderTrendSection(points: TrendPoint[], stationName?: string): 
     .join('');
 
   return `
-    <section class="trend-section">
-      <h2 class="trend-title">12-Hour Air Quality Trend${stationName ? ` <span class="trend-subtitle">· ${stationName}</span>` : ''}</h2>
-      <div class="trend-chart-wrap">
-        <svg viewBox="0 0 ${WIDTH} ${HEIGHT}" class="trend-svg" id="trend-svg">
-          <defs>
-            <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="${lastReading.color}" stop-opacity="0.3" />
-              <stop offset="100%" stop-color="${lastReading.color}" stop-opacity="0" />
-            </linearGradient>
-          </defs>
-          ${zoneRects}
-          ${hourGridLines}
-          ${yGridLines}
-          <path d="${areaPath}" fill="url(#${gradientId})" stroke="none" />
-          ${segments}
-          <circle cx="${x(endMs).toFixed(1)}" cy="${y(values[values.length - 1]).toFixed(1)}" r="4.5" fill="${lastReading.color}" stroke="var(--bg)" stroke-width="2" />
-          <line id="trend-crosshair" x1="0" y1="${PAD_TOP}" x2="0" y2="${PAD_TOP + plotH}" stroke="var(--text-primary)" stroke-width="1" opacity="0" />
-          ${hourLabels}
-          <rect id="trend-hover-target" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="transparent" />
-        </svg>
-        <div id="trend-tooltip" class="trend-tooltip" hidden></div>
+    <div class="card">
+      <div class="card-head">
+        <span class="title">12-Hour Air Quality Trend${stationName ? ` <span class="trend-subtitle">· ${stationName}</span>` : ''}</span>
       </div>
-      <div class="trend-legend">${legend}</div>
-    </section>
+      <div class="card-body">
+        <div class="trend-chart-wrap">
+          <svg viewBox="0 0 ${WIDTH} ${HEIGHT}" class="trend-svg" id="trend-svg">
+            <defs>
+              <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${lastReading.color}" stop-opacity="0.3" />
+                <stop offset="100%" stop-color="${lastReading.color}" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            ${zoneRects}
+            ${hourGridLines}
+            ${yGridLines}
+            <path d="${areaPath}" fill="url(#${gradientId})" stroke="none" />
+            ${segments}
+            <circle cx="${x(endMs).toFixed(1)}" cy="${y(values[values.length - 1]).toFixed(1)}" r="4.5" fill="${lastReading.color}" stroke="var(--surface)" stroke-width="2" />
+            <line id="trend-crosshair" x1="0" y1="${PAD_TOP}" x2="0" y2="${PAD_TOP + plotH}" stroke="var(--label)" stroke-width="1" opacity="0" />
+            ${hourLabels}
+            <rect id="trend-hover-target" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="transparent" />
+          </svg>
+          <div id="trend-tooltip" class="trend-tooltip" hidden></div>
+        </div>
+        <div class="trend-legend">${legend}</div>
+      </div>
+    </div>
   `;
 }
 
